@@ -71,7 +71,14 @@ footer a{color:inherit}
 body.offline #cevrimdisi{display:block}
 #acilis{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.55);display:grid;place-items:center;padding:20px}
 #acilis[hidden]{display:none}
-#acilis div{background:var(--kart);color:var(--yazi);border-radius:18px;padding:22px 20px;max-width:420px;box-shadow:0 8px 30px rgba(0,0,0,.3)}
+#acilis > div{background:var(--kart);color:var(--yazi);border-radius:18px;padding:22px 20px;max-width:440px;
+  max-height:calc(100vh - 40px);overflow:auto;box-shadow:0 8px 30px rgba(0,0,0,.3)}
+.nasil{list-style:none;margin:0 0 12px;padding:0;font-size:15px}
+.nasil li{display:flex;gap:10px;margin:0 0 10px;align-items:flex-start}
+.nasil .no{flex:none;width:28px;height:28px;border-radius:50%;background:var(--ana-acik);color:var(--ana);
+  display:grid;place-items:center;font-weight:700;font-size:14px}
+.ornek{background:var(--vurgu-acik);border-radius:12px;padding:10px 12px;font-size:14px;margin:0 0 12px}
+.resmi{font-size:13px;color:var(--soluk);border-top:1px solid var(--cizgi);padding-top:10px;margin-top:4px}
 #acilis h3{margin:0 0 10px;font-size:19px}
 #acilis p{margin:0 0 12px;font-size:15px}
 #acilis button{width:100%;border:0;border-radius:12px;padding:14px;font-size:16px;font-weight:700;background:#b3122e;color:#fff;margin-top:6px}
@@ -108,11 +115,11 @@ body.offline #cevrimdisi{display:block}
 <main id="icerik"></main>
 <footer id="altbilgi"></footer>
 <div id="acilis" hidden role="dialog" aria-modal="true"><div>
-  <h3>Bilgilendirme</h3>
-  <p><b>Bu uygulama resmî değildir</b> ve Millî Eğitim Bakanlığı ile bir bağlantısı yoktur.</p>
-  <p>Tüm kitaplar, cevap anahtarları ve ek materyaller MEB'e aittir. Uygulama hiçbir dosyayı kopyalamaz;
-    dokunduğunuzda dosya doğrudan MEB'in sitesinden açılır.</p>
-  <button id="anladim">Anladım</button>
+  <h3>Nasıl kullanılır?</h3>
+  <div id="acilis-nasil"></div>
+  <p class="resmi"><b>Bu uygulama resmî değildir</b> ve Millî Eğitim Bakanlığı ile bir bağlantısı yoktur.
+    Tüm kitaplar, cevap anahtarları ve ek materyaller MEB'e aittir; uygulama hiçbir dosyayı kopyalamaz.</p>
+  <button id="anladim">Başla</button>
 </div></div>
 
 <div id="menu" hidden><div class="kutu" role="dialog" aria-modal="true">
@@ -202,10 +209,25 @@ async function paylas(metin) {
   catch (e) { prompt("Bu metni kopyalayıp gönderin:", metin); }
 }
 
+const NASIL = `
+  <ol class="nasil">
+    <li><span class="no">1</span><span><b>Sınıfınızı</b>, ardından <b>dersinizi</b> seçin.</span></li>
+    <li><span class="no">2</span><span>Her dersin bir <b>etkinlik kitabı</b> var. "Etkinlik kitabını aç" ile kitabın
+      tamamını açıp etkinlikleri çözebilirsiniz.</span></li>
+    <li><span class="no">3</span><span>Kitaptaki her bölümün (etkinlik veya tema) <b>cevap anahtarı</b> ayrı
+      listelenir. <b>"Kitapta s. 9–14"</b> o cevap anahtarının kitabın hangi sayfalarına ait olduğunu gösterir.</span></li>
+    <li><span class="no">4</span><span>Bazı derslerde <b>ek materyaller</b> de vardır: 🎧 dinleme sesleri,
+      ▶️ videolar, 📄 ek okuma metinleri.</span></li>
+    <li><span class="no">5</span><span>Dosyalar <b>MEB'in sitesinden</b> açılır; internet bağlantısı gerekir.</span></li>
+  </ol>
+  <div class="ornek"><b>Örnek:</b> 5. sınıf Matematik kitabının 9–14. sayfalarındaki etkinliği çözdünüz.
+    Cevaplarınızı kontrol etmek için 5. Sınıf → Matematik → <b>MAT.5.3.1</b> (Kitapta s. 9–14) satırına dokunun.</div>`;
+
 function hakkinda() {
   $("#baslik").textContent = "Hakkında";
   const k = kayitlar();
   $("#icerik").innerHTML = `
+    <div class="bilgi-kart"><h3>Nasıl kullanılır?</h3>${NASIL}</div>
     <div class="bilgi-kart"><h3>Etkinlik Kitapları Rehberi</h3>
       <p>Sürüm ${esc(SURUM)}</p>
       <p>MEB'in yayımladığı Öğrenme Etkinlikleri Seti kitaplarına, cevap anahtarlarına ve ek materyallerine
@@ -304,6 +326,8 @@ function ciz() {
         <div class="alt">PDF${d.sayfa ? " · " + d.sayfa + " sayfa" : ""}${d.boyut ? " · " + mb(d.boyut) : ""}</div></span>
       <span class="ok">↗</span></a>
     <h2>CEVAP ANAHTARLARI</h2>
+    ${cevaplar ? `<p class="ipucu">Her satır kitaptaki bir bölümün cevaplarıdır. Çözdüğünüz sayfayı
+      "Kitapta s." bilgisinden bulun.</p>` : ""}
     ${cevaplar ? `<div class="liste">${cevaplar}</div>`
       : `<div class="not">Bu kitabın cevap anahtarı bağlantıları bulunamadı. Kitabın içindeki karekodları okutarak ulaşabilirsiniz.</div>`}
     ${ekler ? `<h2>EK MATERYALLER</h2><div class="liste">${ekler}</div>` : ""}`;
@@ -393,6 +417,7 @@ if (UYGULAMA) {
   // İlk açılışta bir kez "resmî değildir" bilgilendirmesi
   let gosterildi = false;
   try { gosterildi = localStorage.getItem("bilgilendirme") === "1"; } catch (e) {}
+  $("#acilis-nasil").innerHTML = NASIL;
   if (!gosterildi) $("#acilis").hidden = false;
   $("#anladim").onclick = () => {
     $("#acilis").hidden = true;
