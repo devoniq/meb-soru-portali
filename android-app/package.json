@@ -1,0 +1,15 @@
+{
+  "name": "etkinlik-kitaplari-rehberi",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Etkinlik Kitapları Rehberi - Android paketi (Capacitor)",
+  "scripts": {
+    "kopyala": "node kopyala.js",
+    "esitle": "node kopyala.js && npx cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.6.2",
+    "@capacitor/cli": "^8.6.2",
+    "@capacitor/core": "^8.6.2"
+  }
+}

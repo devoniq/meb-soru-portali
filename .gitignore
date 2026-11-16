@@ -1,2 +1,11 @@
 _onbellek/
 __pycache__/
+_araclar/
+android-app/node_modules/
+android-app/www/
+android-app/imza/
+*.apk
+android-app/derleme.log
+android-app/imza*.rar
+android-app/imza*.zip
+*.jks

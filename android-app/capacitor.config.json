@@ -1,0 +1,13 @@
+{
+  "appId": "io.github.devoniq.etkinlikkitaplari",
+  "appName": "Etkinlik Kitapları Rehberi",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#b3122e"
+  },
+  "plugins": {
+    "SystemBars": {
+      "style": "DARK"
+    }
+  }
+}

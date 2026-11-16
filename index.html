@@ -66,6 +66,12 @@ footer{max-width:640px;margin:0 auto;padding:0 16px calc(env(safe-area-inset-bot
 footer a{color:inherit}
 #cevrimdisi{display:none;background:#5a4a00;color:#fff;font-size:13px;text-align:center;padding:6px}
 body.offline #cevrimdisi{display:block}
+#acilis{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.55);display:grid;place-items:center;padding:20px}
+#acilis[hidden]{display:none}
+#acilis div{background:var(--kart);color:var(--yazi);border-radius:18px;padding:22px 20px;max-width:420px;box-shadow:0 8px 30px rgba(0,0,0,.3)}
+#acilis h3{margin:0 0 10px;font-size:19px}
+#acilis p{margin:0 0 12px;font-size:15px}
+#acilis button{width:100%;border:0;border-radius:12px;padding:14px;font-size:16px;font-weight:700;background:#b3122e;color:#fff;margin-top:6px}
 </style>
 </head>
 <body>
@@ -76,10 +82,20 @@ body.offline #cevrimdisi{display:block}
 </header>
 <main id="icerik"></main>
 <footer id="altbilgi"></footer>
+<div id="acilis" hidden role="dialog" aria-modal="true"><div>
+  <h3>Bilgilendirme</h3>
+  <p><b>Bu uygulama resmî değildir</b> ve Millî Eğitim Bakanlığı ile bir bağlantısı yoktur.</p>
+  <p>Tüm kitaplar, cevap anahtarları ve ek materyaller MEB'e aittir. Uygulama hiçbir dosyayı kopyalamaz;
+    dokunduğunuzda dosya doğrudan MEB'in sitesinden açılır.</p>
+  <button id="anladim">Anladım</button>
+</div></div>
 
 <script src="veri.js"></script>
 <script>
-const V = window.VERI || {siniflar: []};
+let V = window.VERI || {siniflar: []};
+const UYGULAMA = !!window.Capacitor;  // Android uygulaması içinde mi?
+const AD = UYGULAMA ? "Etkinlik Kitapları Rehberi" : "MEB Etkinlik Kitapları";
+const CANLI = "https://devoniq.github.io/meb-soru-portali/veri.js";
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const mb = b => b ? (b / 1048576).toFixed(b < 10485760 ? 1 : 0).replace(".", ",") + " MB" : "";
@@ -106,7 +122,7 @@ function ciz() {
   window.scrollTo(0, 0);
 
   if (!s) {
-    $("#baslik").textContent = "MEB Etkinlik Kitapları";
+    $("#baslik").textContent = AD;
     icerik.innerHTML = `<p class="ipucu">Sınıfınızı seçin. Kitaplar ve cevap anahtarları doğrudan MEB'in sitesinden açılır.</p>
       <div class="izgara">${V.siniflar.map(s => `
         <a class="sinif" href="#${s.sinif}"><b>${s.sinif}</b><span>${s.dersler.length} ders</span></a>`).join("")}
@@ -175,12 +191,42 @@ addEventListener("hashchange", ciz);
 const agDurumu = () => document.body.classList.toggle("offline", !navigator.onLine);
 addEventListener("online", agDurumu); addEventListener("offline", agDurumu); agDurumu();
 
-$("#altbilgi").innerHTML = `Tüm kitaplar ve cevap anahtarları T.C. Millî Eğitim Bakanlığına aittir; bu sayfa yalnızca
+function altbilgi() {
+$("#altbilgi").innerHTML = `${UYGULAMA ? "Bu uygulama resmî değildir; MEB ile bağlantısı yoktur. " : ""}Tüm kitaplar ve cevap anahtarları T.C. Millî Eğitim Bakanlığına aittir; bu sayfa yalnızca
   MEB'in kendi dosyalarına bağlantı verir. Kaynak: <a href="${esc(V.duyuru)}" target="_blank" rel="noopener">MEB ODSGM duyurusu</a>.
   ${V.guncelleme ? "Bağlantılar " + V.guncelleme.split("-").reverse().join(".") + " tarihinde kontrol edildi." : ""}`;
+}
+altbilgi();
 ciz();
 
-if ("serviceWorker" in navigator && location.protocol !== "file:") navigator.serviceWorker.register("sw.js");
+if (UYGULAMA) {
+  // İlk açılışta bir kez "resmî değildir" bilgilendirmesi
+  let gosterildi = false;
+  try { gosterildi = localStorage.getItem("bilgilendirme") === "1"; } catch (e) {}
+  if (!gosterildi) $("#acilis").hidden = false;
+  $("#anladim").onclick = () => {
+    $("#acilis").hidden = true;
+    try { localStorage.setItem("bilgilendirme", "1"); } catch (e) {}
+  };
+  // Bağlantılar uygulama dışında (telefonun PDF görüntüleyicisi / tarayıcısı) açılır
+  document.addEventListener("click", e => {
+    const a = e.target.closest('a[target="_blank"]');
+    if (!a) return;
+    e.preventDefault();
+    if (!navigator.onLine) { alert("Bu dosyayı açmak için internet bağlantısı gerekli."); return; }
+    location.href = a.href;
+  });
+  // Güncel listeyi siteden çek; olmazsa uygulamanın içindeki liste kullanılır
+  fetch(CANLI, {cache: "no-store"}).then(r => r.ok ? r.text() : Promise.reject())
+    .then(t => {
+      const yeni = JSON.parse(t.replace(/^\s*window\.VERI\s*=\s*/, "").replace(/;\s*$/, ""));
+      if (yeni.siniflar && yeni.siniflar.length && (yeni.guncelleme || "") >= (V.guncelleme || "")) {
+        V = yeni; altbilgi(); ciz();
+      }
+    }).catch(() => {});
+} else if ("serviceWorker" in navigator && location.protocol !== "file:") {
+  navigator.serviceWorker.register("sw.js");
+}
 </script>
 </body>
 </html>

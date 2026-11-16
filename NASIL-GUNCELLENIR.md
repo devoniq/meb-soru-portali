@@ -52,6 +52,31 @@ Sınıf sayfalarının adresleri `guncelle.py` dosyasının başındaki `SINIFLA
 (sınıf → MEB sayfa numarası). MEB yeni sayfa açarsa bu satırın güncellenmesi gerekir;
 bunu Claude'a "MEB yeni set yayımladı, portalı güncelle" diyerek yaptırabilirsiniz.
 
+## Android uygulaması (APK)
+Uygulamanın adı **Etkinlik Kitapları Rehberi** (bilerek "MEB" ile başlamıyor, MEB logosu yok,
+ilk açılışta "resmî değildir" bilgilendirmesi çıkıyor). Uygulama listeyi her açılışta canlı siteden
+(`veri.js`) çeker. Bu yüzden **bağlantıları güncelleyip `git push` yapmanız yeterli; yeni APK gerekmez.**
+İnternet yoksa uygulamanın içindeki son liste gösterilir.
+
+Yeni APK yalnızca görünüş veya davranış (index.html) değiştiğinde gerekir:
+
+```
+cd C:\Users\User\projects\meb-soru-portali; powershell -ExecutionPolicy Bypass -File .\apk-yap.ps1
+```
+
+Sonuç bu klasörde `Etkinlik-Kitaplari-Rehberi.apk` olarak çıkar (~3 MB). Yeni sürümü dağıtmadan önce
+`android-app\android\app\build.gradle` içindeki `versionCode` sayısını 1 artırın (Claude'a yaptırabilirsiniz).
+
+**Telefona kurma:** APK'yı WhatsApp/e-posta ile gönderin → telefonda dosyaya dokunun → "Bu kaynaktan
+yüklemeye izin ver" → Yükle.
+
+**⚠️ İmza anahtarı:** `android-app\imza` klasörü uygulamanın imzasıdır ve GitHub'a gönderilmez.
+Kaybolursa yeni sürümler eski sürümün üzerine kurulamaz (önce eskisini silmek gerekir).
+Bu klasörü bir USB belleğe / Google Drive'a yedekleyin.
+
+Klasörler: `android-app` (Android projesi), `_araclar` (Java 21, yalnızca APK üretmek için;
+silinirse Claude yeniden indirir). İkisi de GitHub'a gönderilmez.
+
 ## Bilgisayarda deneme
 ```
 python -m http.server 5070 --directory C:\Users\User\projects\meb-soru-portali
