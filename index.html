@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MEB Etkinlik Kitapları</title>
+<meta name="description" content="MEB Öğrenme Etkinlikleri Seti kitapları ve cevap anahtarları: sınıf ve derse göre düzenli bağlantılar.">
+<meta name="theme-color" content="#b3122e">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="ikon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="ikon-192.png">
+<style>
+:root{
+  --bg:#f6f4f1; --kart:#fff; --yazi:#1d1b19; --soluk:#6b655e; --cizgi:#e6e1da;
+  --ana:#b3122e; --ana-acik:#fbe9ec; --vurgu:#0f6b5c; --vurgu-acik:#e3f3ef;
+  --golge:0 1px 2px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.05);
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#141312;--kart:#1f1d1b;--yazi:#f1ede8;--soluk:#a39c93;--cizgi:#34302c;
+    --ana:#ff6b81;--ana-acik:#3a1f24;--vurgu:#5fd0b8;--vurgu-acik:#18302b;--golge:none}
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--yazi);
+  font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{position:sticky;top:0;z-index:5;background:var(--ana);color:#fff;
+  padding:calc(env(safe-area-inset-top) + 12px) 16px 12px;display:flex;align-items:center;gap:10px}
+@media (prefers-color-scheme:dark){header{background:#7d0c20}}
+header h1{font-size:18px;margin:0;font-weight:700;flex:1;min-width:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#geri{background:rgba(255,255,255,.18);border:0;color:#fff;border-radius:10px;
+  width:40px;height:40px;font-size:22px;cursor:pointer;flex:none}
+#geri[hidden]{display:none}
+main{max-width:640px;margin:0 auto;padding:16px 16px 40px}
+.ipucu{color:var(--soluk);font-size:14px;margin:0 0 14px}
+.izgara{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.sinif{background:var(--kart);border:1px solid var(--cizgi);border-radius:16px;box-shadow:var(--golge);
+  aspect-ratio:1/0.9;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-decoration:none;color:var(--yazi)}
+.sinif b{font-size:34px;line-height:1;color:var(--ana)}
+.sinif span{font-size:13px;color:var(--soluk);margin-top:6px}
+.sinif:active,.satir:active{transform:scale(.98)}
+.liste{display:flex;flex-direction:column;gap:10px}
+.satir{display:flex;align-items:center;gap:12px;background:var(--kart);border:1px solid var(--cizgi);
+  border-radius:14px;padding:14px;text-decoration:none;color:var(--yazi);box-shadow:var(--golge);min-height:64px}
+.rozet{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:22px;flex:none;
+  background:var(--ana-acik)}
+.satir .orta{flex:1;min-width:0}
+.satir .ad{font-weight:600}
+.satir .alt{font-size:13px;color:var(--soluk)}
+.ok{color:var(--soluk);font-size:20px;flex:none}
+.kitap{background:#b3122e;color:#fff;border-color:transparent}
+.kitap .alt{color:rgba(255,255,255,.85)}
+.kitap .rozet{background:rgba(255,255,255,.2)}
+.kitap .ok{color:#fff}
+h2{font-size:15px;margin:22px 0 10px;color:var(--soluk);font-weight:600;letter-spacing:.02em}
+.cevap .rozet,.ek .rozet{background:var(--vurgu-acik);font-size:18px}
+.uyari{border-style:solid;border-color:#e0b100;background:#fff8dc;color:#5a4a00}
+@media (prefers-color-scheme:dark){.uyari{background:#2e2700;color:#f3df8a;border-color:#7a6500}}
+.cevap .ad{font-weight:500;font-size:15px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.kod{font-weight:700;color:var(--vurgu)}
+.not{background:var(--kart);border:1px dashed var(--cizgi);border-radius:12px;padding:12px 14px;
+  font-size:14px;color:var(--soluk)}
+footer{max-width:640px;margin:0 auto;padding:0 16px calc(env(safe-area-inset-bottom) + 24px);
+  font-size:12.5px;color:var(--soluk)}
+footer a{color:inherit}
+#cevrimdisi{display:none;background:#5a4a00;color:#fff;font-size:13px;text-align:center;padding:6px}
+body.offline #cevrimdisi{display:block}
+</style>
+</head>
+<body>
+<div id="cevrimdisi">İnternet bağlantısı yok — kitapları açmak için internet gerekir.</div>
+<header>
+  <button id="geri" hidden aria-label="Geri">‹</button>
+  <h1 id="baslik">MEB Etkinlik Kitapları</h1>
+</header>
+<main id="icerik"></main>
+<footer id="altbilgi"></footer>
+
+<script src="veri.js"></script>
+<script>
+const V = window.VERI || {siniflar: []};
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const mb = b => b ? (b / 1048576).toFixed(b < 10485760 ? 1 : 0).replace(".", ",") + " MB" : "";
+const slug = s => s.toLocaleLowerCase("tr").replace(/ı/g,"i").replace(/ğ/g,"g").replace(/ü/g,"u")
+  .replace(/ş/g,"s").replace(/ö/g,"o").replace(/ç/g,"c").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+
+const IKON = [
+  [/matematik/i,"📐"],[/fizik/i,"🧲"],[/kimya/i,"⚗️"],[/biyoloji/i,"🧬"],[/fen/i,"🔬"],
+  [/türk/i,"📖"],[/ingilizce/i,"🇬🇧"],[/din/i,"🕌"],[/sosyal/i,"🌍"],[/coğrafya/i,"🗺️"],
+  [/tarih/i,"🏛️"],[/felsefe/i,"💭"]];
+const ikon = ad => (IKON.find(([r]) => r.test(ad)) || [, "📘"])[1];
+
+function bul(sinifNo, dersSlug) {
+  const s = V.siniflar.find(x => String(x.sinif) === sinifNo);
+  const d = s && dersSlug ? s.dersler.find(x => slug(x.ad) === dersSlug) : null;
+  return {s, d};
+}
+
+function ciz() {
+  const [sinifNo, dersSlug] = location.hash.replace(/^#\/?/, "").split("/");
+  const {s, d} = bul(sinifNo, dersSlug);
+  const icerik = $("#icerik");
+  $("#geri").hidden = !s;
+  window.scrollTo(0, 0);
+
+  if (!s) {
+    $("#baslik").textContent = "MEB Etkinlik Kitapları";
+    icerik.innerHTML = `<p class="ipucu">Sınıfınızı seçin. Kitaplar ve cevap anahtarları doğrudan MEB'in sitesinden açılır.</p>
+      <div class="izgara">${V.siniflar.map(s => `
+        <a class="sinif" href="#${s.sinif}"><b>${s.sinif}</b><span>${s.dersler.length} ders</span></a>`).join("")}
+      </div>
+      <p class="ipucu" style="margin-top:16px">8. ve 12. sınıflar bu sette yer almıyor.</p>`;
+    return;
+  }
+
+  if (!d) {
+    $("#baslik").textContent = `${s.sinif}. Sınıf`;
+    icerik.innerHTML = `<div class="liste">${s.dersler.map(d => `
+      <a class="satir" href="#${s.sinif}/${slug(d.ad)}">
+        <span class="rozet">${ikon(d.ad)}</span>
+        <span class="orta"><div class="ad">${esc(d.ad)}</div>
+          <div class="alt">${d.hata ? "⚠️ MEB bağlantısı çalışmıyor"
+            : (d.cevaplar.length ? d.cevaplar.length + " cevap anahtarı" : "Kitap")
+              + (d.ekler && d.ekler.length ? " · " + d.ekler.length + " ek materyal" : "")}</div></span>
+        <span class="ok">›</span></a>`).join("")}</div>`;
+    return;
+  }
+
+  $("#baslik").textContent = `${s.sinif}. Sınıf · ${d.ad}`;
+  if (d.hata || !d.url) {
+    icerik.innerHTML = `<div class="not uyari">⚠️ <b>MEB'in bu kitap için verdiği bağlantı şu an çalışmıyor</b>
+      (dosya MEB sunucusunda bulunamıyor). MEB düzelttiğinde kitap ve cevap anahtarları buraya otomatik eklenecek.</div>
+      <a class="satir" href="${esc(s.sayfa)}" target="_blank" rel="noopener" style="margin-top:12px">
+        <span class="rozet">🔗</span><span class="orta"><div class="ad">MEB'in ${s.sinif}. sınıf sayfasına git</div>
+        <div class="alt">odsgm.meb.gov.tr</div></span><span class="ok">↗</span></a>`;
+    return;
+  }
+  const EK = {dinleme: ["🎧", "Dinleme"], video: ["▶️", "Video / EBA içeriği"], metin: ["📄", "Ek okuma metni"]};
+  const ekler = (d.ekler || []).map(e => {
+    const [ik, ad] = EK[e.tur] || ["🔗", "Bağlantı"];
+    return `<a class="satir ek" href="${esc(e.url)}" target="_blank" rel="noopener">
+      <span class="rozet">${ik}</span>
+      <span class="orta"><div class="ad">${ad}</div>
+        <div class="alt">Kitapta s. ${esc(e.sayfa)}${e.boyut ? " · " + mb(e.boyut) : ""}${/ders\.eba/.test(e.url) ? " · EBA girişi gerekebilir" : ""}</div></span>
+      <span class="ok">↗</span></a>`;
+  }).join("");
+  const cevaplar = d.cevaplar.map((c, i) => {
+    const m = (c.baslik || "").match(/^(\S+)\s+(.*)$/);
+    const ad = m ? `<span class="kod">${esc(m[1])}</span> ${esc(m[2])}` : `Etkinlik ${i + 1}`;
+    return `<a class="satir cevap" href="${esc(c.url)}" target="_blank" rel="noopener">
+      <span class="rozet">🔑</span>
+      <span class="orta"><div class="ad">${ad}</div>
+        <div class="alt">Kitapta s. ${esc(c.sayfa)} · Cevap anahtarı${c.boyut ? " · " + mb(c.boyut) : ""}</div></span>
+      <span class="ok">↗</span></a>`;
+  }).join("");
+  icerik.innerHTML = `
+    <a class="satir kitap" href="${esc(d.url)}" target="_blank" rel="noopener">
+      <span class="rozet">${ikon(d.ad)}</span>
+      <span class="orta"><div class="ad">Etkinlik kitabını aç</div>
+        <div class="alt">PDF${d.sayfa ? " · " + d.sayfa + " sayfa" : ""}${d.boyut ? " · " + mb(d.boyut) : ""}</div></span>
+      <span class="ok">↗</span></a>
+    <h2>CEVAP ANAHTARLARI</h2>
+    ${cevaplar ? `<div class="liste">${cevaplar}</div>`
+      : `<div class="not">Bu kitabın cevap anahtarı bağlantıları bulunamadı. Kitabın içindeki karekodları okutarak ulaşabilirsiniz.</div>`}
+    ${ekler ? `<h2>EK MATERYALLER</h2><div class="liste">${ekler}</div>` : ""}`;
+}
+
+$("#geri").onclick = () => {
+  const [sinifNo, dersSlug] = location.hash.replace(/^#\/?/, "").split("/");
+  location.hash = dersSlug ? "#" + sinifNo : "";
+};
+addEventListener("hashchange", ciz);
+const agDurumu = () => document.body.classList.toggle("offline", !navigator.onLine);
+addEventListener("online", agDurumu); addEventListener("offline", agDurumu); agDurumu();
+
+$("#altbilgi").innerHTML = `Tüm kitaplar ve cevap anahtarları T.C. Millî Eğitim Bakanlığına aittir; bu sayfa yalnızca
+  MEB'in kendi dosyalarına bağlantı verir. Kaynak: <a href="${esc(V.duyuru)}" target="_blank" rel="noopener">MEB ODSGM duyurusu</a>.
+  ${V.guncelleme ? "Bağlantılar " + V.guncelleme.split("-").reverse().join(".") + " tarihinde kontrol edildi." : ""}`;
+ciz();
+
+if ("serviceWorker" in navigator && location.protocol !== "file:") navigator.serviceWorker.register("sw.js");
+</script>
+</body>
+</html>
