@@ -1,6 +1,7 @@
 window.VERI = {
  "guncelleme": "2026-11-16",
  "duyuru": "https://odsgm.meb.gov.tr/www/milli-egitim-bakanliginca-turkiye-yuzyili-maarif-modeli-olcme-ve-degerlendirme-yaklasimi-dogrultusunda-hazirlanan-ogrenme-etkinlikleri-seti039nin-ikinci-bolumu-yayimlandi/icerik/1765/tr",
+ "iletisim": "etkinlikrehberiapp@gmail.com",
  "siniflar": [
   {
    "sinif": 5,

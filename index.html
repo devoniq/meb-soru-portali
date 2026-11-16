@@ -31,6 +31,9 @@ header h1{font-size:18px;margin:0;font-weight:700;flex:1;min-width:0;
 #geri{background:rgba(255,255,255,.18);border:0;color:#fff;border-radius:10px;
   width:40px;height:40px;font-size:22px;cursor:pointer;flex:none}
 #geri[hidden]{display:none}
+#bilgi{background:rgba(255,255,255,.18);border:0;color:#fff;border-radius:10px;
+  width:40px;height:40px;font-size:20px;cursor:pointer;flex:none}
+#bilgi[hidden]{display:none}
 main{max-width:640px;margin:0 auto;padding:16px 16px 40px}
 .ipucu{color:var(--soluk);font-size:14px;margin:0 0 14px}
 .izgara{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
@@ -72,6 +75,27 @@ body.offline #cevrimdisi{display:block}
 #acilis h3{margin:0 0 10px;font-size:19px}
 #acilis p{margin:0 0 12px;font-size:15px}
 #acilis button{width:100%;border:0;border-radius:12px;padding:14px;font-size:16px;font-weight:700;background:#b3122e;color:#fff;margin-top:6px}
+#menu{position:fixed;inset:0;z-index:15;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center}
+#menu[hidden]{display:none}
+#ipucu{position:fixed;inset:0;z-index:16;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center}
+#ipucu[hidden]{display:none}
+#ipucu .kutu{background:var(--kart);color:var(--yazi);width:100%;max-width:640px;border-radius:18px 18px 0 0;
+  padding:20px 16px calc(env(safe-area-inset-bottom) + 16px)}
+#ipucu h3{margin:0 0 10px;font-size:18px}
+#ipucu ol{margin:0 0 6px;padding-left:22px;font-size:15px}
+#ipucu li{margin:6px 0}
+#ipucu .kucuk{font-size:12.5px;color:var(--soluk);margin:10px 0 0;text-align:center}
+#menu .kutu{background:var(--kart);color:var(--yazi);width:100%;max-width:640px;border-radius:18px 18px 0 0;
+  padding:18px 16px calc(env(safe-area-inset-bottom) + 16px)}
+#menu .etiket{font-size:14px;color:var(--soluk);margin:0 0 12px}
+.dugme{display:block;width:100%;border:1px solid var(--cizgi);background:var(--kart);color:var(--yazi);
+  border-radius:12px;padding:14px;font-size:16px;font-weight:600;margin-top:8px;text-align:center;cursor:pointer}
+.dugme.ana{background:#b3122e;color:#fff;border-color:transparent}
+.bilgi-kart{background:var(--kart);border:1px solid var(--cizgi);border-radius:14px;padding:16px;margin-bottom:12px}
+.bilgi-kart h3{margin:0 0 6px;font-size:17px}
+.bilgi-kart p{margin:6px 0;font-size:14.5px}
+.kayitlar{font:12px/1.4 ui-monospace,Consolas,monospace;white-space:pre-wrap;word-break:break-all;
+  background:var(--bg);border-radius:10px;padding:10px;max-height:300px;overflow:auto;margin-top:8px}
 </style>
 </head>
 <body>
@@ -79,6 +103,7 @@ body.offline #cevrimdisi{display:block}
 <header>
   <button id="geri" hidden aria-label="Geri">‹</button>
   <h1 id="baslik">MEB Etkinlik Kitapları</h1>
+  <button id="bilgi" aria-label="Hakkında">ⓘ</button>
 </header>
 <main id="icerik"></main>
 <footer id="altbilgi"></footer>
@@ -90,9 +115,39 @@ body.offline #cevrimdisi{display:block}
   <button id="anladim">Anladım</button>
 </div></div>
 
+<div id="menu" hidden><div class="kutu" role="dialog" aria-modal="true">
+  <p class="etiket" id="menu-etiket"></p>
+  <button class="dugme ana" id="menu-ac">Aç</button>
+  <button class="dugme" id="menu-bildir">⚠️ Bu bağlantı açılmıyor – e-postayla bildir</button>
+  <button class="dugme" id="menu-vazgec">Vazgeç</button>
+</div></div>
+
+<div id="ipucu" hidden><div class="kutu" role="dialog" aria-modal="true" aria-labelledby="ipucu-baslik">
+  <h3 id="ipucu-baslik">📄 Dosya MEB'in sitesinden açılacak</h3>
+  <ol id="ipucu-adimlar"></ol>
+  <button class="dugme ana" id="ipucu-ac">Anladım, aç</button>
+  <button class="dugme" id="ipucu-vazgec">Vazgeç</button>
+  <p class="kucuk" id="ipucu-kalan"></p>
+</div></div>
+
 <script src="veri.js"></script>
 <script>
 let V = window.VERI || {siniflar: []};
+
+// ---- Hata kaydı: telefonda tutulur (son 50), yalnızca kullanıcı "paylaş" derse gönderilir ----
+const KAYIT_ANAHTARI = "hata-kayitlari";
+function kayitlar() {
+  try { return JSON.parse(localStorage.getItem(KAYIT_ANAHTARI)) || []; } catch (e) { return []; }
+}
+function kaydet(tur, mesaj) {
+  const k = kayitlar();
+  k.push({z: new Date().toISOString(), t: tur, m: String(mesaj).slice(0, 500), s: location.hash || "#"});
+  try { localStorage.setItem(KAYIT_ANAHTARI, JSON.stringify(k.slice(-50))); } catch (e) {}
+}
+addEventListener("error", e => kaydet("hata", `${e.message} (${(e.filename || "").split("/").pop()}:${e.lineno})`));
+addEventListener("unhandledrejection", e => kaydet("hata", "Yakalanmamış: " + (e.reason && e.reason.message || e.reason)));
+let LISTE = window.Capacitor ? "uygulama içi" : "site";  // listenin kaynağı: "canlı" / "uygulama içi" / "güncellenemedi"
+let SURUM = "web";
 const UYGULAMA = !!window.Capacitor;  // Android uygulaması içinde mi?
 const AD = UYGULAMA ? "Etkinlik Kitapları Rehberi" : "MEB Etkinlik Kitapları";
 const CANLI = "https://devoniq.github.io/meb-soru-portali/veri.js";
@@ -114,8 +169,75 @@ function bul(sinifNo, dersSlug) {
   return {s, d};
 }
 
+function zaman(iso) {
+  const d = new Date(iso);
+  return d.toLocaleDateString("tr-TR") + " " + d.toLocaleTimeString("tr-TR", {hour: "2-digit", minute: "2-digit"});
+}
+function cihaz() {
+  const m = navigator.userAgent.match(/Android [\d.]+/);
+  return m ? m[0] : (navigator.platform || "bilinmiyor");
+}
+function rapor(baslik) {
+  const k = kayitlar();
+  return [`${AD} – ${baslik}`,
+    `Sürüm: ${SURUM} · ${cihaz()} · Liste: ${V.guncelleme || "?"} (${LISTE})`,
+    `Sayfa: ${location.hash || "#"}`,
+    "", `--- Kayıtlar (${k.length}) ---`,
+    ...(k.length ? k.map(x => `${zaman(x.z)} [${x.t}] ${x.s} ${x.m}`) : ["(kayıt yok)"])].join("\n");
+}
+const iletisim = () => V.iletisim || "etkinlikrehberiapp@gmail.com";
+function epostala(konu, metin) {
+  location.href = `mailto:${iletisim()}?subject=${encodeURIComponent(AD + " – " + konu)}&body=${encodeURIComponent(metin + "\n\n(İsterseniz buraya not ekleyebilirsiniz.)\n")}`;
+}
+async function paylas(metin) {
+  const P = window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.Share;
+  try {
+    if (P) return await P.share({title: AD + " – sorun bildirimi", text: metin, dialogTitle: "Bildirimi gönder"});
+    if (navigator.share) return await navigator.share({title: AD + " – sorun bildirimi", text: metin});
+  } catch (e) {
+    if (/cancel|abort/i.test(String(e && (e.message || e.name) || e))) return;  // kullanıcı vazgeçti
+    kaydet("hata", "Paylaşılamadı: " + (e && e.message || e));
+  }
+  try { await navigator.clipboard.writeText(metin); alert("Bildirim metni panoya kopyalandı."); }
+  catch (e) { prompt("Bu metni kopyalayıp gönderin:", metin); }
+}
+
+function hakkinda() {
+  $("#baslik").textContent = "Hakkında";
+  const k = kayitlar();
+  $("#icerik").innerHTML = `
+    <div class="bilgi-kart"><h3>Etkinlik Kitapları Rehberi</h3>
+      <p>Sürüm ${esc(SURUM)}</p>
+      <p>MEB'in yayımladığı Öğrenme Etkinlikleri Seti kitaplarına, cevap anahtarlarına ve ek materyallerine
+        sınıf ve derse göre düzenli bağlantılar.</p>
+      <p><b>Resmî değildir;</b> Millî Eğitim Bakanlığı ile bağlantısı yoktur. Tüm içerik MEB'e aittir ve
+        MEB'in sitesinden açılır. Uygulama kişisel bilgi toplamaz.</p>
+      <p>Liste: ${V.guncelleme ? esc(V.guncelleme.split("-").reverse().join(".")) : "?"} (${esc(LISTE)})</p></div>
+    <div class="bilgi-kart"><h3>Sorun bildir</h3>
+      <p>Bir kitap veya cevap anahtarı açılmıyorsa, listede o bağlantının <b>üzerine basılı tutun</b> ve
+        "Bu bağlantı açılmıyor" seçin.</p>
+      <p>Başka bir sorun için aşağıdaki düğmeye basın. E-posta uygulamanız, bildirim metni hazır olarak
+        açılır; "Gönder"e basmanız yeterli. Metinde yalnızca sürüm, Android sürümü ve uygulama içi hata
+        kayıtları bulunur.</p>
+      <p>İletişim: <b>${esc(iletisim())}</b></p>
+      <button class="dugme ana" id="bildir">✉️ E-postayla sorun bildir</button>
+      <button class="dugme" id="paylas">Başka yolla paylaş (WhatsApp vb.)</button>
+      <p style="font-size:13px;color:var(--soluk)">Bildirim gönderirseniz e-posta adresiniz yalnızca size
+        yanıt vermek için kullanılır.</p></div>
+    <div class="bilgi-kart"><h3>Hata kayıtları (${k.length})</h3>
+      ${k.length ? `<div class="kayitlar">${esc(k.slice().reverse().map(x => `${zaman(x.z)} [${x.t}] ${x.s}\n  ${x.m}`).join("\n"))}</div>
+        <button class="dugme" id="temizle">Kayıtları temizle</button>` : `<p>Kayıt yok.</p>`}</div>`;
+  $("#bildir").onclick = () => epostala("sorun bildirimi", rapor("sorun bildirimi"));
+  $("#paylas").onclick = () => paylas(rapor("sorun bildirimi"));
+  if ($("#temizle")) $("#temizle").onclick = () => {
+    if (confirm("Hata kayıtları silinsin mi?")) { try { localStorage.removeItem(KAYIT_ANAHTARI); } catch (e) {} hakkinda(); }
+  };
+}
+
 function ciz() {
   const [sinifNo, dersSlug] = location.hash.replace(/^#\/?/, "").split("/");
+  $("#bilgi").hidden = sinifNo === "hakkinda";
+  if (sinifNo === "hakkinda") { $("#geri").hidden = false; window.scrollTo(0, 0); return hakkinda(); }
   const {s, d} = bul(sinifNo, dersSlug);
   const icerik = $("#icerik");
   $("#geri").hidden = !s;
@@ -148,7 +270,8 @@ function ciz() {
   if (d.hata || !d.url) {
     icerik.innerHTML = `<div class="not uyari">⚠️ <b>MEB'in bu kitap için verdiği bağlantı şu an çalışmıyor</b>
       (dosya MEB sunucusunda bulunamıyor). MEB düzelttiğinde kitap ve cevap anahtarları buraya otomatik eklenecek.</div>
-      <a class="satir" href="${esc(s.sayfa)}" target="_blank" rel="noopener" style="margin-top:12px">
+      <a class="satir" href="${esc(s.sayfa)}" target="_blank" rel="noopener" style="margin-top:12px"
+        data-e="${esc(`${s.sinif}. Sınıf ${d.ad} – MEB sınıf sayfası`)}" data-t="sayfa">
         <span class="rozet">🔗</span><span class="orta"><div class="ad">MEB'in ${s.sinif}. sınıf sayfasına git</div>
         <div class="alt">odsgm.meb.gov.tr</div></span><span class="ok">↗</span></a>`;
     return;
@@ -156,7 +279,8 @@ function ciz() {
   const EK = {dinleme: ["🎧", "Dinleme"], video: ["▶️", "Video / EBA içeriği"], metin: ["📄", "Ek okuma metni"]};
   const ekler = (d.ekler || []).map(e => {
     const [ik, ad] = EK[e.tur] || ["🔗", "Bağlantı"];
-    return `<a class="satir ek" href="${esc(e.url)}" target="_blank" rel="noopener">
+    return `<a class="satir ek" href="${esc(e.url)}" target="_blank" rel="noopener"
+      data-e="${esc(`${s.sinif}. Sınıf ${d.ad} – ${ad} (kitapta s. ${e.sayfa})`)}" data-t="${esc(e.tur)}" data-b="${e.boyut || 0}">
       <span class="rozet">${ik}</span>
       <span class="orta"><div class="ad">${ad}</div>
         <div class="alt">Kitapta s. ${esc(e.sayfa)}${e.boyut ? " · " + mb(e.boyut) : ""}${/ders\.eba/.test(e.url) ? " · EBA girişi gerekebilir" : ""}</div></span>
@@ -165,14 +289,16 @@ function ciz() {
   const cevaplar = d.cevaplar.map((c, i) => {
     const m = (c.baslik || "").match(/^(\S+)\s+(.*)$/);
     const ad = m ? `<span class="kod">${esc(m[1])}</span> ${esc(m[2])}` : `Etkinlik ${i + 1}`;
-    return `<a class="satir cevap" href="${esc(c.url)}" target="_blank" rel="noopener">
+    return `<a class="satir cevap" href="${esc(c.url)}" target="_blank" rel="noopener"
+      data-e="${esc(`${s.sinif}. Sınıf ${d.ad} – ${m ? m[1] : "Etkinlik " + (i + 1)} cevap anahtarı (kitapta s. ${c.sayfa})`)}" data-t="pdf" data-b="${c.boyut || 0}">
       <span class="rozet">🔑</span>
       <span class="orta"><div class="ad">${ad}</div>
         <div class="alt">Kitapta s. ${esc(c.sayfa)} · Cevap anahtarı${c.boyut ? " · " + mb(c.boyut) : ""}</div></span>
       <span class="ok">↗</span></a>`;
   }).join("");
   icerik.innerHTML = `
-    <a class="satir kitap" href="${esc(d.url)}" target="_blank" rel="noopener">
+    <a class="satir kitap" href="${esc(d.url)}" target="_blank" rel="noopener"
+      data-e="${esc(`${s.sinif}. Sınıf ${d.ad} – Etkinlik kitabı`)}" data-t="pdf" data-b="${d.boyut || 0}">
       <span class="rozet">${ikon(d.ad)}</span>
       <span class="orta"><div class="ad">Etkinlik kitabını aç</div>
         <div class="alt">PDF${d.sayfa ? " · " + d.sayfa + " sayfa" : ""}${d.boyut ? " · " + mb(d.boyut) : ""}</div></span>
@@ -187,12 +313,76 @@ $("#geri").onclick = () => {
   const [sinifNo, dersSlug] = location.hash.replace(/^#\/?/, "").split("/");
   location.hash = dersSlug ? "#" + sinifNo : "";
 };
+$("#bilgi").onclick = () => { location.hash = "#hakkinda"; };
 addEventListener("hashchange", ciz);
+
+// İlk birkaç dosya açılışında "ne olacak" bilgisi
+const IPUCU_SAYISI = 3;
+let ipucuBaglanti = null, ipucuGec = false;
+function ipucuGosterildi() { try { return +localStorage.getItem("ipucu-sayisi") || 0; } catch (e) { return 0; } }
+function ipucuAdimlari(a) {
+  const b = +a.dataset.b || 0, t = a.dataset.t;
+  const boyut = b ? ` (${mb(b)})` : "";
+  const ilk = {
+    pdf: `Uygulama sizi <b>MEB'in sitesine</b> yönlendirir; dosya${boyut} telefonunuza indirilir.`,
+    dinleme: `Uygulama sizi <b>MEB'in sitesine</b> yönlendirir; ses dosyası${boyut} çalınır.`,
+    video: `Uygulama sizi <b>EBA'ya</b> yönlendirir; içerik orada açılır (EBA girişi istenebilir).`,
+    metin: `Uygulama sizi <b>MEB'in sitesine</b> yönlendirir; dosya${boyut} telefonunuza indirilir.`,
+    sayfa: `Uygulama sizi <b>MEB'in sitesindeki</b> ilgili sayfaya yönlendirir.`,
+  }[t] || `Uygulama sizi <b>MEB'in sitesine</b> yönlendirir.`;
+  const adimlar = [ilk];
+  if (t === "pdf" || t === "metin")
+    adimlar.push(`Doküman telefonunuzun <b>PDF görüntüleyicisinde</b> veya tarayıcısında açılır. Açılması dosya boyutuna göre birkaç saniye sürebilir.`);
+  if (b > 10485760) adimlar.push(`Büyük bir dosya: mobil veri yerine <b>Wi-Fi</b> önerilir.`);
+  adimlar.push(UYGULAMA ? `Uygulamaya dönmek için telefonunuzun <b>geri</b> tuşuna basın.`
+                        : `Dosya yeni sekmede açılır; bu sayfaya dönmek için sekmeyi kapatın.`);
+  return adimlar.map(x => `<li>${x}</li>`).join("");
+}
+document.addEventListener("click", e => {
+  const a = e.target.closest("a[data-e]");
+  if (!a || ipucuGec) { ipucuGec = false; return; }
+  const n = ipucuGosterildi();
+  if (n >= IPUCU_SAYISI) return;
+  e.preventDefault(); e.stopImmediatePropagation();
+  ipucuBaglanti = a;
+  $("#ipucu-adimlar").innerHTML = ipucuAdimlari(a);
+  const kalan = IPUCU_SAYISI - n - 1;
+  $("#ipucu-kalan").textContent = kalan > 0 ? `Bu bilgi ${kalan} kez daha gösterilecek.` : "Bu bilgi bir daha gösterilmeyecek.";
+  $("#ipucu").hidden = false;
+}, true);
+$("#ipucu-ac").onclick = () => {
+  try { localStorage.setItem("ipucu-sayisi", String(ipucuGosterildi() + 1)); } catch (e) {}
+  $("#ipucu").hidden = true;
+  const a = ipucuBaglanti; ipucuBaglanti = null;
+  if (a) { ipucuGec = true; a.click(); }
+};
+$("#ipucu-vazgec").onclick = () => { $("#ipucu").hidden = true; ipucuBaglanti = null; };
+$("#ipucu").addEventListener("click", e => { if (e.target.id === "ipucu") $("#ipucu-vazgec").click(); });
+
+// Bağlantıya uzun basınca: Aç / Bu bağlantı açılmıyor – bildir
+let secili = null;
+const menuKapat = () => { $("#menu").hidden = true; secili = null; };
+document.addEventListener("contextmenu", e => {
+  const a = e.target.closest("a[data-e]");
+  if (!a || !matchMedia("(pointer:coarse)").matches) return;
+  e.preventDefault();
+  secili = a;
+  $("#menu-etiket").textContent = a.dataset.e;
+  $("#menu").hidden = false;
+});
+$("#menu").onclick = e => { if (e.target.id === "menu") menuKapat(); };
+$("#menu-vazgec").onclick = menuKapat;
+$("#menu-ac").onclick = () => { const a = secili; menuKapat(); if (a) a.click(); };
+$("#menu-bildir").onclick = () => {
+  const a = secili; menuKapat(); if (!a) return;
+  kaydet("bildirim", `Açılmıyor: ${a.dataset.e} ${a.href}`);
+  epostala("açılmayan bağlantı: " + a.dataset.e, rapor(`açılmayan bağlantı: ${a.dataset.e}\n${a.href}`));
+};
 const agDurumu = () => document.body.classList.toggle("offline", !navigator.onLine);
 addEventListener("online", agDurumu); addEventListener("offline", agDurumu); agDurumu();
 
 function altbilgi() {
-$("#altbilgi").innerHTML = `${UYGULAMA ? "Bu uygulama resmî değildir; MEB ile bağlantısı yoktur. " : ""}Tüm kitaplar ve cevap anahtarları T.C. Millî Eğitim Bakanlığına aittir; bu sayfa yalnızca
+$("#altbilgi").innerHTML = `${LISTE === "güncellenemedi" ? "<b>Liste güncellenemedi; son kayıtlı liste gösteriliyor.</b> " : ""}${UYGULAMA ? "Bu uygulama resmî değildir; MEB ile bağlantısı yoktur. " : ""}Tüm kitaplar ve cevap anahtarları T.C. Millî Eğitim Bakanlığına aittir; bu sayfa yalnızca
   MEB'in kendi dosyalarına bağlantı verir. Kaynak: <a href="${esc(V.duyuru)}" target="_blank" rel="noopener">MEB ODSGM duyurusu</a>.
   ${V.guncelleme ? "Bağlantılar " + V.guncelleme.split("-").reverse().join(".") + " tarihinde kontrol edildi." : ""}`;
 }
@@ -217,13 +407,21 @@ if (UYGULAMA) {
     location.href = a.href;
   });
   // Güncel listeyi siteden çek; olmazsa uygulamanın içindeki liste kullanılır
-  fetch(CANLI, {cache: "no-store"}).then(r => r.ok ? r.text() : Promise.reject())
+  const AppP = Capacitor.Plugins && Capacitor.Plugins.App;
+  if (AppP) AppP.getInfo().then(i => { SURUM = `${i.version} (${i.build})`; if (location.hash === "#hakkinda") ciz(); })
+    .catch(e => kaydet("hata", "Sürüm okunamadı: " + (e && e.message || e)));
+  fetch(CANLI, {cache: "no-store"}).then(r => r.ok ? r.text() : Promise.reject(new Error("HTTP " + r.status)))
     .then(t => {
       const yeni = JSON.parse(t.replace(/^\s*window\.VERI\s*=\s*/, "").replace(/;\s*$/, ""));
-      if (yeni.siniflar && yeni.siniflar.length && (yeni.guncelleme || "") >= (V.guncelleme || "")) {
-        V = yeni; altbilgi(); ciz();
-      }
-    }).catch(() => {});
+      if (!(yeni.siniflar && yeni.siniflar.length)) throw new Error("liste boş geldi");
+      LISTE = "canlı";
+      if ((yeni.guncelleme || "") >= (V.guncelleme || "")) V = yeni;
+      altbilgi(); ciz();
+    }).catch(e => {
+      LISTE = "güncellenemedi";
+      if (navigator.onLine) kaydet("liste", "Güncel liste alınamadı: " + (e && e.message || e));
+      altbilgi(); if (location.hash === "#hakkinda") ciz();
+    });
 } else if ("serviceWorker" in navigator && location.protocol !== "file:") {
   navigator.serviceWorker.register("sw.js");
 }

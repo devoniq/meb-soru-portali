@@ -25,6 +25,7 @@ DUYURU = ("https://odsgm.meb.gov.tr/www/milli-egitim-bakanliginca-turkiye-yuzyil
           "olcme-ve-degerlendirme-yaklasimi-dogrultusunda-hazirlanan-ogrenme-etkinlikleri-seti039nin-"
           "ikinci-bolumu-yayimlandi/icerik/1765/tr")
 SINIFLAR = {5: 1659, 6: 1660, 7: 1763, 9: 1661, 10: 1662, 11: 1764}
+ILETISIM = "etkinlikrehberiapp@gmail.com"  # sorun bildirimlerinin gideceği adres (uygulama buradan okur)
 UA = {"User-Agent": "Mozilla/5.0 (meb-soru-portali)"}
 
 KOD = r"[A-ZÇĞİÖŞÜ]{1,8}(?:\.\d+){3,4}"
@@ -192,7 +193,7 @@ def ders_isle(sinif, ders):
 
 
 def main():
-    veri = {"guncelleme": datetime.date.today().isoformat(), "duyuru": DUYURU, "siniflar": []}
+    veri = {"guncelleme": datetime.date.today().isoformat(), "duyuru": DUYURU, "iletisim": ILETISIM, "siniflar": []}
     isler, hatalar = [], []
     with cf.ThreadPoolExecutor(4) as havuz:
         for sinif, sid in SINIFLAR.items():
