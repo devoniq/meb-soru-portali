@@ -36,6 +36,17 @@ Bitti: 45 ders, 351 cevap anahtarı, 57 ek materyal, 0 kırık karekod bağlant�
 
 "çalışmayan kitap" = MEB'in sayfasındaki bağlantı bozuk (16.11.2026 itibarıyla 9. sınıf Tarih).
 
+## Canlı siteye gönderme
+Portal https://devoniq.github.io/meb-soru-portali/ adresinde yayında. Yukarıdaki komut yalnızca
+bu bilgisayardaki `veri.js` dosyasını yeniler; telefonlarda da görünmesi için gönderin:
+
+```
+cd C:\Users\User\projects\meb-soru-portali; git commit -am "Bağlantılar güncellendi"; git push
+```
+
+GitHub sitesi yaklaşık 1 dakika içinde yenilenir. "nothing to commit" yazarsa değişen bir şey
+yok demektir, sorun değil.
+
 ## Yeni bir set yayımlanırsa
 Sınıf sayfalarının adresleri `guncelle.py` dosyasının başındaki `SINIFLAR` satırındadır
 (sınıf → MEB sayfa numarası). MEB yeni sayfa açarsa bu satırın güncellenmesi gerekir;
