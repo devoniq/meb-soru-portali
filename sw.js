@@ -1,5 +1,5 @@
 // Uygulama kabuğunu önbelleğe alır; PDF'ler önbelleğe alınmaz (MEB'den açılır).
-const SURUM = "v1";
+const SURUM = "v2";
 const KABUK = ["./", "index.html", "veri.js", "manifest.webmanifest", "ikon.svg", "ikon-192.png", "ikon-512.png"];
 
 self.addEventListener("install", e => {

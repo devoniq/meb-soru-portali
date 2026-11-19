@@ -450,6 +450,17 @@ if (UYGULAMA) {
 } else if ("serviceWorker" in navigator && location.protocol !== "file:") {
   navigator.serviceWorker.register("sw.js");
 }
+// Ziyaret sayacı (GoatCounter, çerezsiz): yalnızca yayındaki sitede sayar; uygulamada ve yerel testte saymaz.
+// Sınıf/ders sayfaları da ayrı görünsün diye adres # kısmıyla birlikte gönderilir (ör. /meb-soru-portali/#5/matematik).
+if (!UYGULAMA && location.hostname === "devoniq.github.io") {
+  const yol = () => location.pathname + location.hash;
+  window.goatcounter = {path: yol};
+  const s = document.createElement("script");
+  s.async = true; s.src = "https://gc.zgo.at/count.js";
+  s.dataset.goatcounter = "https://mebsoru.goatcounter.com/count";
+  document.head.appendChild(s);
+  addEventListener("hashchange", () => { if (window.goatcounter.count) window.goatcounter.count({path: yol()}); });
+}
 </script>
 </body>
 </html>
